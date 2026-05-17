@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import os
 
 # Page config
 st.set_page_config(page_title="UK Top 50 Analytics", layout="wide")
@@ -10,17 +11,27 @@ st.set_page_config(page_title="UK Top 50 Analytics", layout="wide")
 st.title("🇬🇧 UK Top 50 Playlist Market Structure Dashboard")
 st.markdown("*Market Structure, Artist Diversity & Content Localization Analysis for Atlantic Recording Corporation*")
 
-# Load data - use original dataset
+# Load data - with correct path for deployment
 @st.cache_data
 def load_data():
-    # Load data - use this path
-    df = pd.read_csv('data/Atlantic_United_kingdom.csv')
-    df['date'] = pd.to_datetime(df['date'], format='%d-%m-%Y', errors='coerce')
-    # Add collaboration flag
-    df['is_collaboration'] = df['artist'].str.contains('&|,', na=False)
-    return df
+    # Try different possible paths
+    paths_to_try = [
+        'data/Atlantic_United_Kingdom.csv'
+    ]
+    
+    for path in paths_to_try:
+        if os.path.exists(path):
+            df = pd.read_csv(path)
+            df['date'] = pd.to_datetime(df['date'], format='%d-%m-%Y', errors='coerce')
+            df['is_collaboration'] = df['artist'].str.contains('&|,', na=False)
+            return df
+    
+    st.error("Dataset not found. Checked paths: " + ", ".join(paths_to_try))
+    st.stop()
 
 df = load_data()
+
+# Rest of your code continues here...
 
 # Define UK artists
 uk_artists = ['Central Cee', 'RAYE', 'Dua Lipa', 'Ed Sheeran', 'Dave', 'Stormzy', 
